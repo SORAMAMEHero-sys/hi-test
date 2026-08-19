@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>爆走ランアクション！</title>
+    <title>爆走ランアクション！調整版</title>
     <style>
         body { margin: 0; background: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
         canvas { background: #282c34; border: 4px solid #61dafb; }
@@ -14,17 +14,29 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // プレイヤーは20x20の真四角
     let player = { x: 50, y: 210, size: 20, dy: 0, gravity: 0.8, grounded: true };
     let obstacles = [];
     let gameSpeed = 6;
     let score = 0;
     let isGameOver = false;
     let isPressing = false;
+    let speedInterval;
+
+    // 5秒ごとに1.1倍早くする
+    function startSpeedUp() {
+        speedInterval = setInterval(() => {
+            if (!isGameOver) {
+                gameSpeed *= 1.1;
+            }
+        }, 5000);
+    }
 
     window.addEventListener("pointerdown", () => {
         if (isGameOver) {
-            obstacles = []; score = 0; gameSpeed = 6; isGameOver = false; player.y = 210; loop();
+            obstacles = []; score = 0; gameSpeed = 6; isGameOver = false; player.y = 210;
+            clearInterval(speedInterval);
+            startSpeedUp();
+            loop();
         } else if (player.grounded) {
             player.dy = -10;
             player.grounded = false;
@@ -42,8 +54,10 @@
 
         if (player.y > 210) { player.y = 210; player.dy = 0; player.grounded = true; }
         
-        // 障害物の生成
-        if (Math.random() < 0.02) obstacles.push({ x: canvas.width, y: 225 });
+        // 発生確率を下げて（0.02 → 0.012）、サボテンの間隔を開ける
+        if (Math.random() < 0.012) {
+            obstacles.push({ x: canvas.width, y: 225 });
+        }
 
         for (let i = obstacles.length - 1; i >= 0; i--) {
             obstacles[i].x -= gameSpeed;
@@ -51,6 +65,7 @@
             // 当たり判定
             if (obstacles[i].x < player.x + player.size && obstacles[i].x > player.x - 15 && player.y > 195) {
                 isGameOver = true;
+                clearInterval(speedInterval);
             }
             if (obstacles[i].x < -30) { obstacles.splice(i, 1); score++; }
         }
@@ -63,7 +78,7 @@
         ctx.fillStyle = "#61dafb";
         ctx.fillRect(player.x, player.y, player.size, player.size);
         
-        // 障害物はサボテン(🌵)のまま
+        // 障害物はサボテン(🌵)
         ctx.font = "30px Arial";
         for (let obs of obstacles) {
             ctx.fillText("🌵", obs.x, obs.y);
@@ -71,14 +86,19 @@
 
         ctx.fillStyle = "white";
         ctx.font = "20px Arial";
-        ctx.fillText("Score: " + score, 20, 30);
-        if (isGameOver) ctx.fillText("GAME OVER", 330, 150);
+        ctx.fillText("Score: " + score + " | Speed: " + gameSpeed.toFixed(1), 20, 30);
+        
+        if (isGameOver) {
+            ctx.fillText("GAME OVER", 330, 150);
+        }
     }
 
     function loop() {
         update(); draw();
         if (!isGameOver) requestAnimationFrame(loop);
     }
+
+    startSpeedUp();
     loop();
 </script>
 </body>
