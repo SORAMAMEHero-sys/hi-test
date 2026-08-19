@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>爆走ランアクション！完結編</title>
+    <title>爆走ランアクション！小ジャンプ対応版</title>
     <style>
         body { margin: 0; background: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
         canvas { background: #282c34; border: 4px solid #61dafb; }
@@ -14,55 +14,59 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // プレイヤーと障害物の初期位置を完全に合わせる設定
-    let player = { x: 50, y: 200, width: 30, height: 30, dy: 0, gravity: 0.6, grounded: true };
+    let player = { x: 50, y: 200, dy: 0, gravity: 0.8, jumpPower: -10, grounded: true };
     let obstacles = [];
-    let gameSpeed = 5;
+    let gameSpeed = 6;
     let score = 0;
     let isGameOver = false;
+    let isPressing = false; // 押しているかどうかのフラグ
 
+    // 押したとき
     window.addEventListener("pointerdown", () => {
         if (isGameOver) {
-            obstacles = []; score = 0; gameSpeed = 5; isGameOver = false; player.y = 200; loop();
+            obstacles = []; score = 0; gameSpeed = 6; isGameOver = false; player.y = 200; loop();
         } else if (player.grounded) {
-            player.dy = -12; player.grounded = false;
+            player.dy = -10; // ジャンプ開始
+            player.grounded = false;
+            isPressing = true;
         }
+    });
+
+    // 離したとき（ここでジャンプを止める）
+    window.addEventListener("pointerup", () => {
+        isPressing = false;
     });
 
     function update() {
         if (isGameOver) return;
-        player.dy += player.gravity; player.y += player.dy;
+        
+        // 小ジャンプの制御：上昇中に指を離したら重力を強くして早く落とす
+        if (!isPressing && player.dy < -2) {
+            player.dy += 0.5; 
+        }
+
+        player.dy += player.gravity;
+        player.y += player.dy;
+
         if (player.y > 200) { player.y = 200; player.dy = 0; player.grounded = true; }
 
         if (Math.random() < 0.02) obstacles.push({ x: canvas.width, y: 220 });
 
         for (let i = obstacles.length - 1; i >= 0; i--) {
             obstacles[i].x -= gameSpeed;
-            
-            // --- 判定の完全同期 ---
-            // キャラクター(x,y)と障害物(x,y)が近接したらアウト
-            if (obstacles[i].x < player.x + 25 && obstacles[i].x > player.x - 20 && player.y > 180) {
+            // 判定エリア
+            if (obstacles[i].x < player.x + 25 && obstacles[i].x > player.x - 5 && player.y > 180) {
                 isGameOver = true;
             }
-
             if (obstacles[i].x < -30) { obstacles.splice(i, 1); score++; }
         }
     }
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
         ctx.font = "30px Arial";
-        // プレイヤーの向き修正（scaleで反転）
-        ctx.save();
-        ctx.translate(player.x + 15, player.y + 15);
-        ctx.scale(-1, 1); 
-        ctx.fillText("🏃‍♂️", -15, 15);
-        ctx.restore();
-
-        // 障害物の描画
-        for (let obs of obstacles) ctx.fillText("🌵", obs.x, obs.y);
-
+        ctx.fillText("🏃‍♂️", player.x, player.y + 30); // 右向き
+        for (let obs of obstacles) ctx.fillText("🌵", obs.x, obs.y + 20);
         ctx.fillStyle = "white";
         ctx.font = "20px Arial";
         ctx.fillText("Score: " + score, 20, 30);
