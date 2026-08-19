@@ -1,18 +1,205 @@
 <!DOCTYPE html>
 <html lang="ja">
-<html>
-　<head>
-　　<meta charset="UTF-8">
-　　<title>練習</title>
-　</head>
-　<body>
-　<header>そらまめの練習サイト</header>
-　<main>
-　　<h1>そらまめの練習サイト</h1>
-　　<h2>ひまだねー</h2>
-　</main>
-　<footer>
-    <img src="cat-smirk 2.jpg">
-　</footer>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <title>爆走ランアクション！</title>
+    <style>
+        body {
+            margin: 0;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .game-container {
+            text-align: center;
+        }
+        canvas {
+            background: #282c34;
+            border: 4px solid #61dafb;
+            box-shadow: 0 0 20px rgba(97, 218, 251, 0.3);
+        }
+        h1 {
+            margin-bottom: 10px;
+            color: #61dafb;
+        }
+        p {
+            color: #888;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>RUNNER GAME</h1>
+    <p>【スペースキー】または【画面クリック】でジャンプ！</p>
+    <canvas id="gameCanvas" width="800" height="300"></canvas>
+</div>
+
+<script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // プレイヤーの設定
+    let player = {
+        x: 50,
+        y: 200,
+        width: 30,
+        height: 30,
+        dy: 0,
+        jumpPower: -10,
+        gravity: 0.6,
+        grounded: true,
+        color: "#61dafb"
+    };
+
+    // 障害物の設定
+    let obstacles = [];
+    let obstacleTimer = 0;
+    let obstacleInterval = 90; // 出現頻度
+
+    let score = 0;
+    let isGameOver = false;
+
+    // キー入力・クリックの検知
+    window.addEventListener("keydown", (e) => {
+        if (e.code === "Space") {
+            e.preventDefault(); // 画面スクロールを防ぐ
+            jump();
+        }
+    });
+
+    canvas.addEventListener("click", () => {
+        jump();
+    });
+
+    function jump() {
+        if (isGameOver) {
+            resetGame();
+        } else if (player.grounded) {
+            player.dy = player.jumpPower;
+            player.grounded = false;
+        }
+    }
+
+    function resetGame() {
+        obstacles = [];
+        score = 0;
+        obstacleTimer = 0;
+        isGameOver = false;
+        loop();
+    }
+
+    // メインのゲームループ
+    function update() {
+        if (isGameOver) return;
+
+        // プレイヤーの物理演算（重力）
+        player.dy += player.gravity;
+        player.y += player.dy;
+
+        // 地面との着地判定
+        const groundY = 230;
+        if (player.y > groundY) {
+            player.y = groundY;
+            player.dy = 0;
+            player.grounded = true;
+        }
+
+        // 障害物の生成
+        obstacleTimer++;
+        if (obstacleTimer >= obstacleInterval) {
+            obstacleTimer = 0;
+            // 障害物の高さをランダムに変える
+            let h = Math.floor(Math.random() * 30) + 20;
+            obstacles.push({
+                x: canvas.width,
+                y: 260 - h,
+                width: 20,
+                height: h,
+                color: "#ff6b6b"
+            });
+            // 少しずつ難易度を上げる（出現間隔を短くする）
+            if (obstacleInterval > 40) obstacleInterval -= 1;
+        }
+
+        // 障害物の移動と削除
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+            obstacles[i].x -= 5; // スピード
+
+            // 当たり判定 (AABB衝突判定)
+            if (
+                player.x < obstacles[i].x + obstacles[i].width &&
+                player.x + player.width > obstacles[i].x &&
+                player.y < obstacles[i].y + obstacles[i].height &&
+                player.y + player.height > obstacles[i].y
+            ) {
+                isGameOver = true;
+            }
+
+            // 画面外に出た障害物を消す
+            if (obstacles[i].x + obstacles[i].width < 0) {
+                obstacles.splice(i, 1);
+                score++;
+            }
+        }
+    }
+
+    function draw() {
+        // 画面クリア
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 地面の描画
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 260, canvas.width, 4);
+
+        // プレイヤーの描画
+        ctx.fillStyle = player.color;
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+
+        // 障害物の描画
+        for (let obs of obstacles) {
+            ctx.fillStyle = obs.color;
+            ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+        }
+
+        // スコアの描画
+        ctx.fillStyle = "#fff";
+        ctx.font = "20px 'Courier New'";
+        ctx.fillText("SCORE: " + score, 20, 30);
+
+        // ゲームオーバー時の表示
+        if (isGameOver) {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#ff6b6b";
+            ctx.font = "30px 'Courier New'";
+            ctx.textAlign = "center";
+            ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 10);
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "16px 'Courier New'";
+            ctx.fillText("クリック または スペースキーでリトライ", canvas.width / 2, canvas.height / 2 + 30);
+            ctx.textAlign = "left"; // 戻す
+        }
+    }
+
+    function loop() {
+        update();
+        draw();
+        if (!isGameOver) {
+            requestAnimationFrame(loop);
+        }
+    }
+
+    // ゲーム開始！
+    loop();
+</script>
+
+</body>
 </html>
