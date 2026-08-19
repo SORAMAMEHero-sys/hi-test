@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>爆走ランアクション！</title>
+    <title>爆走ランアクション！(超低ラグ版)</title>
     <style>
         body {
             margin: 0;
@@ -13,6 +13,8 @@
             height: 100vh;
             color: white;
             font-family: 'Courier New', Courier, monospace;
+            /* スマホでタッチした時に画面が拡大したりスクロールするのを防ぐ */
+            touch-action: none; 
         }
         .game-container {
             text-align: center;
@@ -36,7 +38,7 @@
 
 <div class="game-container">
     <h1>RUNNER GAME</h1>
-    <p>【スペースキー】または【画面クリック】でジャンプ！</p>
+    <p>【スペースキー】または【画面タップ】で即ジャンプ！</p>
     <canvas id="gameCanvas" width="800" height="300"></canvas>
 </div>
 
@@ -44,7 +46,6 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // プレイヤーの設定
     let player = {
         x: 50,
         y: 200,
@@ -57,27 +58,29 @@
         color: "#61dafb"
     };
 
-    // 障害物の設定
     let obstacles = [];
     let obstacleTimer = 0;
-    let obstacleInterval = 90; // 出現頻度
+    let obstacleInterval = 90;
 
     let score = 0;
     let isGameOver = false;
 
-    // キー入力・クリックの検知
+    // キーボードの長押しによる重複実行を防ぐ (e.repeat)
     window.addEventListener("keydown", (e) => {
         if (e.code === "Space") {
-            e.preventDefault(); // 画面スクロールを防ぐ
-            jump();
+            e.preventDefault();
+            if (e.repeat) return; // 押しっぱなしによる連続入力を無視
+            triggerAction();
         }
     });
 
-    canvas.addEventListener("click", () => {
-        jump();
+    // click の代わりに pointerdown を使うことで、触れた瞬間に反応させる
+    canvas.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        triggerAction();
     });
 
-    function jump() {
+    function triggerAction() {
         if (isGameOver) {
             resetGame();
         } else if (player.grounded) {
@@ -94,15 +97,12 @@
         loop();
     }
 
-    // メインのゲームループ
     function update() {
         if (isGameOver) return;
 
-        // プレイヤーの物理演算（重力）
         player.dy += player.gravity;
         player.y += player.dy;
 
-        // 地面との着地判定
         const groundY = 230;
         if (player.y > groundY) {
             player.y = groundY;
@@ -110,11 +110,9 @@
             player.grounded = true;
         }
 
-        // 障害物の生成
         obstacleTimer++;
         if (obstacleTimer >= obstacleInterval) {
             obstacleTimer = 0;
-            // 障害物の高さをランダムに変える
             let h = Math.floor(Math.random() * 30) + 20;
             obstacles.push({
                 x: canvas.width,
@@ -123,15 +121,12 @@
                 height: h,
                 color: "#ff6b6b"
             });
-            // 少しずつ難易度を上げる（出現間隔を短くする）
             if (obstacleInterval > 40) obstacleInterval -= 1;
         }
 
-        // 障害物の移動と削除
         for (let i = obstacles.length - 1; i >= 0; i--) {
-            obstacles[i].x -= 5; // スピード
+            obstacles[i].x -= 5;
 
-            // 当たり判定 (AABB衝突判定)
             if (
                 player.x < obstacles[i].x + obstacles[i].width &&
                 player.x + player.width > obstacles[i].x &&
@@ -141,7 +136,6 @@
                 isGameOver = true;
             }
 
-            // 画面外に出た障害物を消す
             if (obstacles[i].x + obstacles[i].width < 0) {
                 obstacles.splice(i, 1);
                 score++;
@@ -150,29 +144,23 @@
     }
 
     function draw() {
-        // 画面クリア
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 地面の描画
         ctx.fillStyle = "#fff";
         ctx.fillRect(0, 260, canvas.width, 4);
 
-        // プレイヤーの描画
         ctx.fillStyle = player.color;
         ctx.fillRect(player.x, player.y, player.width, player.height);
 
-        // 障害物の描画
         for (let obs of obstacles) {
             ctx.fillStyle = obs.color;
             ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
         }
 
-        // スコアの描画
         ctx.fillStyle = "#fff";
         ctx.font = "20px 'Courier New'";
         ctx.fillText("SCORE: " + score, 20, 30);
 
-        // ゲームオーバー時の表示
         if (isGameOver) {
             ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -184,8 +172,8 @@
 
             ctx.fillStyle = "#fff";
             ctx.font = "16px 'Courier New'";
-            ctx.fillText("クリック または スペースキーでリトライ", canvas.width / 2, canvas.height / 2 + 30);
-            ctx.textAlign = "left"; // 戻す
+            ctx.fillText("タップ または スペースキーでリトライ", canvas.width / 2, canvas.height / 2 + 30);
+            ctx.textAlign = "left";
         }
     }
 
@@ -197,7 +185,6 @@
         }
     }
 
-    // ゲーム開始！
     loop();
 </script>
 
