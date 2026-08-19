@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>爆走ランアクション！カスタム版</title>
+    <title>爆走ランアクション！修正版</title>
     <style>
         body {
             margin: 0;
@@ -15,10 +15,12 @@
             font-family: 'Arial', sans-serif;
             touch-action: none;
             overflow: hidden;
+            /* キャンバスを少し大きく見やすくした */
         }
         canvas {
             background: #282c34;
             border: 4px solid #61dafb;
+            box-shadow: 0 0 15px rgba(97, 218, 251, 0.5);
         }
     </style>
 </head>
@@ -32,18 +34,21 @@
 
     let player = { x: 50, y: 200, width: 30, height: 30, dy: 0, jumpPower: -12, gravity: 0.6, grounded: true };
     let obstacles = [];
-    let gameSpeed = 5; // 初期スピード
+    let gameSpeed = 5;
     let score = 0;
     let isGameOver = false;
 
-    // 7秒ごとにスピードを1.1倍にする処理
-    setInterval(() => {
-        if (!isGameOver) {
-            gameSpeed *= 1.1;
-        }
-    }, 7000);
+    // 加速タイマー（ゲームオーバー時は停止させるために変数化）
+    let speedInterval;
+    function startSpeedUp() {
+        speedInterval = setInterval(() => {
+            if (!isGameOver) {
+                gameSpeed *= 1.1;
+            }
+        }, 7000);
+    }
 
-    // 画面全体どこでもジャンプ対応
+    // ジャンプ処理
     window.addEventListener("pointerdown", (e) => {
         e.preventDefault();
         if (isGameOver) {
@@ -59,6 +64,8 @@
         score = 0;
         gameSpeed = 5;
         isGameOver = false;
+        clearInterval(speedInterval); // 前のタイマーをクリア
+        startSpeedUp(); // タイマー再開
         loop();
     }
 
@@ -68,22 +75,32 @@
         player.dy += player.gravity;
         player.y += player.dy;
 
+        // 地面判定（調整）
         if (player.y > 200) {
             player.y = 200;
             player.dy = 0;
             player.grounded = true;
         }
 
+        // 障害物生成（調整）
         if (Math.random() < 0.02) {
-            obstacles.push({ x: canvas.width, y: 230, width: 30, height: 30 });
+            // 高さをランダムにして変化をつける
+            let cactusY = Math.random() < 0.5 ? 230 : 225; // 2パターンくらいの地面の高さ
+            obstacles.push({ x: canvas.width, y: cactusY, width: 30, height: 30 });
         }
 
         for (let i = obstacles.length - 1; i >= 0; i--) {
             obstacles[i].x -= gameSpeed;
 
-            // 当たり判定
-            if (player.x < obstacles[i].x + 20 && player.x + 20 > obstacles[i].x && player.y > 180) {
+            // 当たり判定（調整）
+            // キャラクターの絵文字サイズに合わせて判定エリアを微調整
+            if (
+                player.x < obstacles[i].x + 15 && // サボテンの少し内側まで判定
+                player.x + 25 > obstacles[i].x &&
+                player.y + 5 > obstacles[i].y
+            ) {
                 isGameOver = true;
+                clearInterval(speedInterval); // ゲームオーバー時に加速を止める
             }
 
             if (obstacles[i].x < -30) {
@@ -96,22 +113,39 @@
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // プレイヤー (🏃‍♂️)
+        // --- プレイヤーの描画修正 ---
+        ctx.save(); // 現在の状態を保存
+        // プレイヤーを中心に移動
+        ctx.translate(player.x + 15, player.y + 15);
+        // 左右反転 (scaleX(-1)) して左向きにする
+        ctx.scale(-1, 1);
+        // 絵文字を描画（中心からオフセット）
         ctx.font = "30px Arial";
-        ctx.fillText("🏃‍♂️", player.x, player.y + 25);
+        ctx.fillText("🏃‍♂️", -15, 15); 
+        ctx.restore(); // 状態を復元
+        // -------------------------
 
-        // 障害物
+        // --- 障害物の描画 ---
+        ctx.font = "30px Arial";
         for (let obs of obstacles) {
-            ctx.fillText("🌵", obs.x, obs.y + 25);
+            // サボテンのy座標を少し下げて地面に接地させた
+            ctx.fillText("🌵", obs.x, obs.y);
         }
+        // --------------------
 
         ctx.fillStyle = "white";
+        ctx.font = "16px Arial";
         ctx.fillText("Score: " + score, 20, 30);
-        ctx.fillText("Speed: " + gameSpeed.toFixed(1), 20, 60);
+        ctx.fillText("Speed: " + gameSpeed.toFixed(1), 20, 50);
 
         if (isGameOver) {
             ctx.fillStyle = "red";
-            ctx.fillText("GAME OVER - タップしてリトライ", 200, 150);
+            ctx.font = "30px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("GAME OVER", canvas.width/2, canvas.height/2);
+            ctx.font = "20px Arial";
+            ctx.fillText("タップしてリトライ", canvas.width/2, canvas.height/2 + 40);
+            ctx.textAlign = "left";
         }
     }
 
@@ -121,6 +155,8 @@
         if (!isGameOver) requestAnimationFrame(loop);
     }
 
+    // 初回起動
+    startSpeedUp();
     loop();
 </script>
 </body>
