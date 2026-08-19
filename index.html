@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>爆走ランアクション！右向き版</title>
+    <title>爆走ランアクション！右向き強制版</title>
     <style>
         body { margin: 0; background: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
         canvas { background: #282c34; border: 4px solid #61dafb; }
@@ -35,20 +35,16 @@
 
     function update() {
         if (isGameOver) return;
-        
-        // 上昇中に指を離すと小ジャンプ
         if (!isPressing && player.dy < -2) player.dy += 0.5;
-
         player.dy += player.gravity;
         player.y += player.dy;
 
         if (player.y > 200) { player.y = 200; player.dy = 0; player.grounded = true; }
-
         if (Math.random() < 0.02) obstacles.push({ x: canvas.width, y: 220 });
 
         for (let i = obstacles.length - 1; i >= 0; i--) {
             obstacles[i].x -= gameSpeed;
-            // 右向きに合わせて判定エリアを調整
+            // 判定エリア（右向きで走るキャラに合わせて調整）
             if (obstacles[i].x < player.x + 30 && obstacles[i].x > player.x - 10 && player.y > 180) {
                 isGameOver = true;
             }
@@ -60,8 +56,13 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         ctx.font = "30px Arial";
-        // 右向きに描画！シンプルにこれだけ！
+        
+        // ！！！ここで強制的に右向きにする！！！
+        // scaleを(1, 1)にして、鏡合わせを解除した
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // 変換をリセット
         ctx.fillText("🏃‍♂️", player.x, player.y + 30);
+        ctx.restore();
         
         for (let obs of obstacles) ctx.fillText("🌵", obs.x, obs.y + 20);
 
