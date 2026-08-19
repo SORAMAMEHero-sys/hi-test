@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>爆走ランアクション！</title>
+    <title>爆走ランアクション！修正版</title>
     <style>
         body { margin: 0; background: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
         canvas { background: #282c34; border: 4px solid #61dafb; }
@@ -22,7 +22,9 @@
     let speedInterval;
 
     function startSpeedUp() {
-        speedInterval = setInterval(() => { if (!isGameOver) gameSpeed *= 1.1; }, 7000);
+        speedInterval = setInterval(() => { 
+            if (!isGameOver) gameSpeed *= 1.1; 
+        }, 7000);
     }
 
     window.addEventListener("pointerdown", (e) => {
@@ -30,24 +32,39 @@
             obstacles = []; score = 0; gameSpeed = 5; isGameOver = false;
             clearInterval(speedInterval); startSpeedUp(); loop();
         } else if (player.grounded) {
-            player.dy = player.jumpPower; player.grounded = false;
+            player.dy = player.jumpPower; 
+            player.grounded = false;
         }
     });
 
     function update() {
         if (isGameOver) return;
-        player.dy += player.gravity; player.y += player.dy;
+        
+        // プレイヤーの移動
+        player.dy += player.gravity;
+        player.y += player.dy;
         if (player.y > 200) { player.y = 200; player.dy = 0; player.grounded = true; }
 
-        if (Math.random() < 0.02) obstacles.push({ x: canvas.width, y: 240 });
+        // 障害物の生成
+        if (Math.random() < 0.02) {
+            obstacles.push({ x: canvas.width, y: 240 });
+        }
 
+        // 障害物の移動と判定
         for (let i = obstacles.length - 1; i >= 0; i--) {
             obstacles[i].x -= gameSpeed;
             
-            // --- ここが当たり判定 ---
+            // --- 厳密な当たり判定 ---
+            // キャラクターとサボテンの距離を測る
             let dx = (player.x + 15) - (obstacles[i].x + 15);
             let dy = (player.y + 15) - (obstacles[i].y + 15);
-            if (Math.sqrt(dx * dx + dy * dy) < 30) { isGameOver = true; clearInterval(speedInterval); }
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // 距離が40以下なら衝突（少し判定を広げた）
+            if (distance < 40) { 
+                isGameOver = true; 
+                clearInterval(speedInterval); 
+            }
 
             if (obstacles[i].x < -30) { obstacles.splice(i, 1); score++; }
         }
@@ -56,6 +73,7 @@
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
+        // プレイヤーの描画
         ctx.save();
         ctx.translate(player.x + 15, player.y + 15);
         ctx.scale(-1, 1);
@@ -63,19 +81,31 @@
         ctx.fillText("🏃‍♂️", -15, 15); 
         ctx.restore();
 
-        for (let obs of obstacles) ctx.fillText("🌵", obs.x, obs.y);
+        // サボテンの描画
+        ctx.font = "30px Arial";
+        for (let obs of obstacles) {
+            ctx.fillText("🌵", obs.x, obs.y);
+        }
 
+        // スコア表示
         ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
         ctx.fillText("Score: " + score + " | Speed: " + gameSpeed.toFixed(1), 20, 30);
-        if (isGameOver) ctx.fillText("GAME OVER - タップしてリトライ", 280, 150);
+        
+        if (isGameOver) {
+            ctx.fillStyle = "red";
+            ctx.fillText("GAME OVER - タップしてリトライ", 250, 150);
+        }
     }
 
     function loop() {
-        update(); draw();
+        update(); 
+        draw();
         if (!isGameOver) requestAnimationFrame(loop);
     }
 
-    startSpeedUp(); loop();
+    startSpeedUp(); 
+    loop();
 </script>
 </body>
 </html>
