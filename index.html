@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>爆走ランアクション！(超低ラグ版)</title>
+    <title>爆走ランアクション！カスタム版</title>
     <style>
         body {
             margin: 0;
@@ -12,87 +12,52 @@
             align-items: center;
             height: 100vh;
             color: white;
-            font-family: 'Courier New', Courier, monospace;
-            /* スマホでタッチした時に画面が拡大したりスクロールするのを防ぐ */
-            touch-action: none; 
-        }
-        .game-container {
-            text-align: center;
+            font-family: 'Arial', sans-serif;
+            touch-action: none;
+            overflow: hidden;
         }
         canvas {
             background: #282c34;
             border: 4px solid #61dafb;
-            box-shadow: 0 0 20px rgba(97, 218, 251, 0.3);
-        }
-        h1 {
-            margin-bottom: 10px;
-            color: #61dafb;
-        }
-        p {
-            color: #888;
-            font-size: 14px;
         }
     </style>
 </head>
 <body>
 
-<div class="game-container">
-    <h1>RUNNER GAME</h1>
-    <p>【スペースキー】または【画面タップ】で即ジャンプ！</p>
-    <canvas id="gameCanvas" width="800" height="300"></canvas>
-</div>
+<canvas id="gameCanvas" width="800" height="300"></canvas>
 
 <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    let player = {
-        x: 50,
-        y: 200,
-        width: 30,
-        height: 30,
-        dy: 0,
-        jumpPower: -10,
-        gravity: 0.6,
-        grounded: true,
-        color: "#61dafb"
-    };
-
+    let player = { x: 50, y: 200, width: 30, height: 30, dy: 0, jumpPower: -12, gravity: 0.6, grounded: true };
     let obstacles = [];
-    let obstacleTimer = 0;
-    let obstacleInterval = 90;
-
+    let gameSpeed = 5; // 初期スピード
     let score = 0;
     let isGameOver = false;
 
-    // キーボードの長押しによる重複実行を防ぐ (e.repeat)
-    window.addEventListener("keydown", (e) => {
-        if (e.code === "Space") {
-            e.preventDefault();
-            if (e.repeat) return; // 押しっぱなしによる連続入力を無視
-            triggerAction();
+    // 7秒ごとにスピードを1.1倍にする処理
+    setInterval(() => {
+        if (!isGameOver) {
+            gameSpeed *= 1.1;
         }
-    });
+    }, 7000);
 
-    // click の代わりに pointerdown を使うことで、触れた瞬間に反応させる
-    canvas.addEventListener("pointerdown", (e) => {
+    // 画面全体どこでもジャンプ対応
+    window.addEventListener("pointerdown", (e) => {
         e.preventDefault();
-        triggerAction();
-    });
-
-    function triggerAction() {
         if (isGameOver) {
             resetGame();
         } else if (player.grounded) {
             player.dy = player.jumpPower;
             player.grounded = false;
         }
-    }
+    });
 
     function resetGame() {
         obstacles = [];
         score = 0;
-        obstacleTimer = 0;
+        gameSpeed = 5;
         isGameOver = false;
         loop();
     }
@@ -103,40 +68,25 @@
         player.dy += player.gravity;
         player.y += player.dy;
 
-        const groundY = 230;
-        if (player.y > groundY) {
-            player.y = groundY;
+        if (player.y > 200) {
+            player.y = 200;
             player.dy = 0;
             player.grounded = true;
         }
 
-        obstacleTimer++;
-        if (obstacleTimer >= obstacleInterval) {
-            obstacleTimer = 0;
-            let h = Math.floor(Math.random() * 30) + 20;
-            obstacles.push({
-                x: canvas.width,
-                y: 260 - h,
-                width: 20,
-                height: h,
-                color: "#ff6b6b"
-            });
-            if (obstacleInterval > 40) obstacleInterval -= 1;
+        if (Math.random() < 0.02) {
+            obstacles.push({ x: canvas.width, y: 230, width: 30, height: 30 });
         }
 
         for (let i = obstacles.length - 1; i >= 0; i--) {
-            obstacles[i].x -= 5;
+            obstacles[i].x -= gameSpeed;
 
-            if (
-                player.x < obstacles[i].x + obstacles[i].width &&
-                player.x + player.width > obstacles[i].x &&
-                player.y < obstacles[i].y + obstacles[i].height &&
-                player.y + player.height > obstacles[i].y
-            ) {
+            // 当たり判定
+            if (player.x < obstacles[i].x + 20 && player.x + 20 > obstacles[i].x && player.y > 180) {
                 isGameOver = true;
             }
 
-            if (obstacles[i].x + obstacles[i].width < 0) {
+            if (obstacles[i].x < -30) {
                 obstacles.splice(i, 1);
                 score++;
             }
@@ -145,48 +95,33 @@
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // プレイヤー (🏃‍♂️)
+        ctx.font = "30px Arial";
+        ctx.fillText("🏃‍♂️", player.x, player.y + 25);
 
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 260, canvas.width, 4);
-
-        ctx.fillStyle = player.color;
-        ctx.fillRect(player.x, player.y, player.width, player.height);
-
+        // 障害物
         for (let obs of obstacles) {
-            ctx.fillStyle = obs.color;
-            ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+            ctx.fillText("🌵", obs.x, obs.y + 25);
         }
 
-        ctx.fillStyle = "#fff";
-        ctx.font = "20px 'Courier New'";
-        ctx.fillText("SCORE: " + score, 20, 30);
+        ctx.fillStyle = "white";
+        ctx.fillText("Score: " + score, 20, 30);
+        ctx.fillText("Speed: " + gameSpeed.toFixed(1), 20, 60);
 
         if (isGameOver) {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = "#ff6b6b";
-            ctx.font = "30px 'Courier New'";
-            ctx.textAlign = "center";
-            ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 10);
-
-            ctx.fillStyle = "#fff";
-            ctx.font = "16px 'Courier New'";
-            ctx.fillText("タップ または スペースキーでリトライ", canvas.width / 2, canvas.height / 2 + 30);
-            ctx.textAlign = "left";
+            ctx.fillStyle = "red";
+            ctx.fillText("GAME OVER - タップしてリトライ", 200, 150);
         }
     }
 
     function loop() {
         update();
         draw();
-        if (!isGameOver) {
-            requestAnimationFrame(loop);
-        }
+        if (!isGameOver) requestAnimationFrame(loop);
     }
 
     loop();
 </script>
-
 </body>
 </html>
