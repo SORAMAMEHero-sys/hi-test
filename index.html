@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>爆走ランアクション！小ジャンプ対応版</title>
+    <title>爆走ランアクション！右向き版</title>
     <style>
         body { margin: 0; background: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
         canvas { background: #282c34; border: 4px solid #61dafb; }
@@ -14,36 +14,30 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    let player = { x: 50, y: 200, dy: 0, gravity: 0.8, jumpPower: -10, grounded: true };
+    let player = { x: 50, y: 200, dy: 0, gravity: 0.8, grounded: true };
     let obstacles = [];
     let gameSpeed = 6;
     let score = 0;
     let isGameOver = false;
-    let isPressing = false; // 押しているかどうかのフラグ
+    let isPressing = false;
 
-    // 押したとき
     window.addEventListener("pointerdown", () => {
         if (isGameOver) {
             obstacles = []; score = 0; gameSpeed = 6; isGameOver = false; player.y = 200; loop();
         } else if (player.grounded) {
-            player.dy = -10; // ジャンプ開始
+            player.dy = -10;
             player.grounded = false;
             isPressing = true;
         }
     });
 
-    // 離したとき（ここでジャンプを止める）
-    window.addEventListener("pointerup", () => {
-        isPressing = false;
-    });
+    window.addEventListener("pointerup", () => { isPressing = false; });
 
     function update() {
         if (isGameOver) return;
         
-        // 小ジャンプの制御：上昇中に指を離したら重力を強くして早く落とす
-        if (!isPressing && player.dy < -2) {
-            player.dy += 0.5; 
-        }
+        // 上昇中に指を離すと小ジャンプ
+        if (!isPressing && player.dy < -2) player.dy += 0.5;
 
         player.dy += player.gravity;
         player.y += player.dy;
@@ -54,8 +48,8 @@
 
         for (let i = obstacles.length - 1; i >= 0; i--) {
             obstacles[i].x -= gameSpeed;
-            // 判定エリア
-            if (obstacles[i].x < player.x + 25 && obstacles[i].x > player.x - 5 && player.y > 180) {
+            // 右向きに合わせて判定エリアを調整
+            if (obstacles[i].x < player.x + 30 && obstacles[i].x > player.x - 10 && player.y > 180) {
                 isGameOver = true;
             }
             if (obstacles[i].x < -30) { obstacles.splice(i, 1); score++; }
@@ -64,9 +58,13 @@
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
         ctx.font = "30px Arial";
-        ctx.fillText("🏃‍♂️", player.x, player.y + 30); // 右向き
+        // 右向きに描画！シンプルにこれだけ！
+        ctx.fillText("🏃‍♂️", player.x, player.y + 30);
+        
         for (let obs of obstacles) ctx.fillText("🌵", obs.x, obs.y + 20);
+
         ctx.fillStyle = "white";
         ctx.font = "20px Arial";
         ctx.fillText("Score: " + score, 20, 30);
