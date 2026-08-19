@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>爆走ランアクション！右向き強制版</title>
+    <title>爆走ランアクション！安定版</title>
     <style>
         body { margin: 0; background: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
         canvas { background: #282c34; border: 4px solid #61dafb; }
@@ -14,7 +14,7 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    let player = { x: 50, y: 200, dy: 0, gravity: 0.8, grounded: true };
+    let player = { x: 50, y: 200, width: 30, height: 30, dy: 0, gravity: 0.8, grounded: true };
     let obstacles = [];
     let gameSpeed = 6;
     let score = 0;
@@ -44,8 +44,8 @@
 
         for (let i = obstacles.length - 1; i >= 0; i--) {
             obstacles[i].x -= gameSpeed;
-            // 判定エリア（右向きで走るキャラに合わせて調整）
-            if (obstacles[i].x < player.x + 30 && obstacles[i].x > player.x - 10 && player.y > 180) {
+            // 右向きに走るキャラの判定（x+30の幅を持たせる）
+            if (obstacles[i].x < player.x + 30 && obstacles[i].x > player.x - 20 && player.y > 180) {
                 isGameOver = true;
             }
             if (obstacles[i].x < -30) { obstacles.splice(i, 1); score++; }
@@ -55,16 +55,13 @@
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        ctx.font = "30px Arial";
+        // --- プレイヤー：右に向かって走る四角形 ---
+        ctx.fillStyle = "#61dafb";
+        ctx.fillRect(player.x, player.y, 40, 30); // 横長にして走ってる感を出した
         
-        // ！！！ここで強制的に右向きにする！！！
-        // scaleを(1, 1)にして、鏡合わせを解除した
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // 変換をリセット
-        ctx.fillText("🏃‍♂️", player.x, player.y + 30);
-        ctx.restore();
-        
-        for (let obs of obstacles) ctx.fillText("🌵", obs.x, obs.y + 20);
+        // --- 障害物：四角いサボテン(■) ---
+        ctx.fillStyle = "#ff6b6b";
+        for (let obs of obstacles) ctx.fillRect(obs.x, obs.y, 25, 25);
 
         ctx.fillStyle = "white";
         ctx.font = "20px Arial";
