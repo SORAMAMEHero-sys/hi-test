@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>WARNING</title>
+<title>度胸試し</title>
 
 <style>
     * {
@@ -14,283 +14,553 @@
     body {
         margin: 0;
         background: #000;
-        color: #fff;
+        color: white;
         font-family: monospace;
-        text-align: center;
         overflow: hidden;
     }
 
-    #warning {
+    .screen {
+        width: 100%;
         min-height: 100vh;
         display: flex;
-        flex-direction: column;
         justify-content: center;
         align-items: center;
+        padding: 20px;
+    }
+
+    .panel {
+        width: 100%;
+        max-width: 600px;
+        text-align: center;
+        border: 2px solid #555;
+        padding: 30px 20px;
         background: #050505;
+        box-shadow: 0 0 30px #111;
     }
 
     h1 {
-        color: red;
-        font-size: 42px;
-        animation: blink 0.7s infinite;
+        font-size: 36px;
+        margin-bottom: 30px;
     }
 
-    .danger {
-        color: #ff3333;
-        font-size: 20px;
-        margin: 15px;
+    p {
+        font-size: 18px;
+        line-height: 1.8;
     }
 
     button {
-        padding: 15px 30px;
-        font-size: 18px;
-        margin-top: 20px;
-        cursor: pointer;
+        margin: 10px;
+        padding: 14px 25px;
+        font-size: 17px;
         background: #111;
-        color: red;
-        border: 2px solid red;
+        color: white;
+        border: 1px solid #888;
+        cursor: pointer;
+        touch-action: manipulation;
     }
 
     button:hover {
-        background: red;
-        color: white;
+        background: #333;
     }
 
-    #screen {
-        display: none;
-        min-height: 100vh;
-        padding: 30px 15px;
-        background: #000;
+    .warning {
+        color: #ff2222;
     }
 
-    #message {
-        margin-top: 50px;
-        font-size: 20px;
-        line-height: 2;
-        white-space: pre-line;
+    .error {
+        color: #ff0000;
+        font-size: 42px;
+        font-weight: bold;
+        animation: blink 0.5s infinite;
     }
 
-    #progress {
-        width: 80%;
-        max-width: 500px;
-        height: 25px;
-        border: 2px solid red;
-        margin: 30px auto;
+    .terminal {
+        text-align: left;
+        background: #020202;
+        border: 1px solid #333;
+        padding: 20px;
+        margin: 20px 0;
+        min-height: 150px;
     }
 
-    #bar {
-        width: 0%;
-        height: 100%;
-        background: red;
-    }
-
-    #download {
-        display: none;
-        margin-top: 40px;
-    }
-
-    #download button {
-        font-size: 20px;
-    }
-
-    #end {
-        display: none;
+    .green {
         color: #00ff66;
-        margin-top: 40px;
+    }
+
+    .red {
+        color: #ff3333;
+    }
+
+    .hidden {
+        display: none;
     }
 
     @keyframes blink {
-        50% {
-            opacity: 0.2;
+        0%, 49% {
+            opacity: 1;
         }
+        50%, 100% {
+            opacity: 0;
+        }
+    }
+
+    @keyframes shake {
+        0% { transform: translate(0); }
+        25% { transform: translate(8px, -4px); }
+        50% { transform: translate(-8px, 4px); }
+        75% { transform: translate(5px, 5px); }
+        100% { transform: translate(0); }
+    }
+
+    .shake {
+        animation: shake 0.15s infinite;
     }
 </style>
 </head>
 
 <body>
 
-<div id="warning">
+<!-- 最初の警告 -->
+<div id="warningScreen" class="screen">
+    <div class="panel">
 
-    <h1>⚠️ WARNING ⚠️</h1>
-
-    <div class="danger">
-        このサイトには刺激の強い演出があります。
-    </div>
-
-    <div>
-        実際のウイルス感染やファイル削除は発生しません。
-    </div>
-
-    <button id="start">覚悟して進む</button>
-
-</div>
-
-
-<div id="screen">
-
-    <h1>⚠️ SYSTEM WARNING ⚠️</h1>
-
-    <div id="message"></div>
-
-    <div id="progress">
-        <div id="bar"></div>
-    </div>
-
-    <div id="download">
+        <h1 class="warning">⚠️ WARNING ⚠️</h1>
 
         <p>
-            怪しいファイルが検出されました。
+            この先には刺激の強い<br>
+            演出が含まれています。
         </p>
 
         <p>
-            <strong>ファイルをダウンロードしますか？</strong>
+            心臓の弱い方は<br>
+            ここで引き返してください。
         </p>
 
-        <button id="downloadButton">
-            ダウンロード
+        <button id="nextButton">
+            次へ進む
         </button>
 
     </div>
+</div>
 
-    <div id="end">
-        <h2>😏 ダウンロードできませんでした</h2>
+
+<!-- よろしいですか？ -->
+<div id="confirmScreen" class="screen hidden">
+    <div class="panel">
+
+        <h1>⚠️ 警告</h1>
 
         <p>
-            ……お疲れさまでした。
+            この先に進むと<br>
+            怖い演出が始まります。
         </p>
 
         <p>
-            これは度胸試しでした。
+            本当によろしいですか？
         </p>
+
+        <button id="yesButton">
+            はい
+        </button>
+
+        <button id="noButton">
+            いいえ
+        </button>
+
     </div>
+</div>
 
+
+<!-- SYSTEM ERROR -->
+<div id="errorScreen" class="screen hidden">
+    <div class="panel">
+
+        <div class="error">
+            SYSTEM ERROR
+        </div>
+
+        <div class="terminal">
+
+            <p class="red">
+                ERROR: UNKNOWN PROCESS
+            </p>
+
+            <p>
+                システムエラーを検出しました。
+            </p>
+
+            <p>
+                不明なファイルを検出しています...
+            </p>
+
+        </div>
+
+        <button id="virusButton">
+            次へ
+        </button>
+
+    </div>
+</div>
+
+
+<!-- virus.apk -->
+<div id="virusScreen" class="screen hidden">
+    <div class="panel">
+
+        <h1>⚠️ SYSTEM</h1>
+
+        <p>
+            <b>virus.apk</b> を<br>
+            ダウンロードしますか？
+        </p>
+
+        <button id="downloadNo">
+            ダウンロードしない
+        </button>
+
+        <button id="downloadYes">
+            ダウンロードする
+        </button>
+
+    </div>
+</div>
+
+
+<!-- ダウンロードしないルート -->
+<div id="fakeDownload1" class="screen hidden">
+    <div class="panel">
+
+        <h1 class="green">
+            DOWNLOAD
+        </h1>
+
+        <div class="terminal">
+            <p>
+                virus.apk
+            </p>
+
+            <p class="green">
+                ダウンロードが完了しました
+            </p>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- ダウンロードするルート -->
+<div id="fakeDownload2" class="screen hidden">
+    <div class="panel">
+
+        <h1 class="red">
+            DOWNLOAD ERROR
+        </h1>
+
+        <div class="terminal">
+
+            <p>
+                virus.apk
+            </p>
+
+            <p class="red">
+                ダウンロードに失敗しました
+            </p>
+
+            <p>
+                しかし...
+            </p>
+
+            <p class="red">
+                horror.apk をダウンロードしました
+            </p>
+
+        </div>
+
+    </div>
 </div>
 
 
 <script>
 
-const warning = document.getElementById("warning");
-const screen = document.getElementById("screen");
-const start = document.getElementById("start");
+    /*
+     * =========================
+     * 画面切り替え
+     * =========================
+     */
 
-const message = document.getElementById("message");
-const bar = document.getElementById("bar");
+    const warningScreen = document.getElementById("warningScreen");
+    const confirmScreen = document.getElementById("confirmScreen");
+    const errorScreen = document.getElementById("errorScreen");
+    const virusScreen = document.getElementById("virusScreen");
 
-const download = document.getElementById("download");
-const downloadButton = document.getElementById("downloadButton");
-
-const end = document.getElementById("end");
-
-
-start.addEventListener("click", function() {
-
-    warning.style.display = "none";
-    screen.style.display = "block";
-
-    startSequence();
-
-});
+    const fakeDownload1 = document.getElementById("fakeDownload1");
+    const fakeDownload2 = document.getElementById("fakeDownload2");
 
 
-function startSequence() {
+    function hideAllScreens() {
 
-    message.textContent =
-        "システムを確認しています……";
+        warningScreen.classList.add("hidden");
+        confirmScreen.classList.add("hidden");
+        errorScreen.classList.add("hidden");
+        virusScreen.classList.add("hidden");
 
-    setTimeout(function() {
+        fakeDownload1.classList.add("hidden");
+        fakeDownload2.classList.add("hidden");
 
-        message.textContent =
-            "⚠️ 警告\n\n" +
-            "ストレージに異常が検出されました。";
-
-    }, 2000);
-
-
-    setTimeout(function() {
-
-        message.textContent =
-            "HDDを確認しています……";
-
-        startProgress();
-
-    }, 4000);
+    }
 
 
-    setTimeout(function() {
+    /*
+     * =========================
+     * 効果音
+     * =========================
+     */
 
-        message.textContent =
-            "⚠️ ERROR ⚠️\n\n" +
-            "重要なデータが破損している可能性があります。";
-
-    }, 8000);
-
-
-    setTimeout(function() {
-
-        message.textContent =
-            "不明なプログラムを検出しました……";
-
-    }, 11000);
+    let audioCtx = null;
 
 
-    setTimeout(function() {
+    function startAudio() {
 
-        message.textContent =
-            "ウイルススキャンを実行しています……";
+        if (!audioCtx) {
+            const AudioContext =
+                window.AudioContext ||
+                window.webkitAudioContext;
 
-    }, 14000);
-
-
-    setTimeout(function() {
-
-        message.textContent =
-            "⚠️ 危険なファイルを検出しました。";
-
-        download.style.display = "block";
-
-    }, 18000);
-
-}
-
-
-function startProgress() {
-
-    let progress = 0;
-
-    const timer = setInterval(function() {
-
-        progress++;
-
-        bar.style.width = progress + "%";
-
-        if (progress >= 100) {
-
-            clearInterval(timer);
-
+            audioCtx = new AudioContext();
         }
 
-    }, 50);
+        if (audioCtx.state === "suspended") {
+            audioCtx.resume();
+        }
+    }
 
-}
+
+    function scarySound() {
+
+        startAudio();
+
+        const now = audioCtx.currentTime;
 
 
-downloadButton.addEventListener("click", function() {
+        // 低い音
+        const oscillator1 =
+            audioCtx.createOscillator();
 
-    download.style.display = "none";
+        const gain1 =
+            audioCtx.createGain();
 
-    message.textContent =
-        "ファイルをダウンロードしています……";
 
-    setTimeout(function() {
+        oscillator1.type = "sawtooth";
 
-        message.textContent =
-            "❌ ダウンロードに失敗しました。";
+        oscillator1.frequency.setValueAtTime(
+            90,
+            now
+        );
 
-        end.style.display = "block";
+        oscillator1.frequency.exponentialRampToValueAtTime(
+            35,
+            now + 1.2
+        );
 
-    }, 2500);
 
-});
+        gain1.gain.setValueAtTime(
+            0.001,
+            now
+        );
+
+        gain1.gain.exponentialRampToValueAtTime(
+            0.35,
+            now + 0.05
+        );
+
+        gain1.gain.exponentialRampToValueAtTime(
+            0.001,
+            now + 1.2
+        );
+
+
+        oscillator1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+
+        oscillator1.start(now);
+        oscillator1.stop(now + 1.2);
+
+
+        // 高い不気味な音
+        const oscillator2 =
+            audioCtx.createOscillator();
+
+        const gain2 =
+            audioCtx.createGain();
+
+
+        oscillator2.type = "square";
+
+        oscillator2.frequency.setValueAtTime(
+            800,
+            now
+        );
+
+        oscillator2.frequency.exponentialRampToValueAtTime(
+            180,
+            now + 0.8
+        );
+
+
+        gain2.gain.setValueAtTime(
+            0.001,
+            now
+        );
+
+        gain2.gain.exponentialRampToValueAtTime(
+            0.15,
+            now + 0.02
+        );
+
+        gain2.gain.exponentialRampToValueAtTime(
+            0.001,
+            now + 0.8
+        );
+
+
+        oscillator2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+
+        oscillator2.start(now);
+        oscillator2.stop(now + 0.8);
+
+    }
+
+
+    /*
+     * =========================
+     * 次へ
+     * =========================
+     */
+
+    document
+        .getElementById("nextButton")
+        .addEventListener("click", function() {
+
+            hideAllScreens();
+
+            confirmScreen.classList.remove("hidden");
+
+        });
+
+
+    /*
+     * =========================
+     * 「はい」
+     * =========================
+     */
+
+    document
+        .getElementById("yesButton")
+        .addEventListener("click", function() {
+
+            // ボタンを押した瞬間に音を開始
+            startAudio();
+
+            scarySound();
+
+            hideAllScreens();
+
+            errorScreen.classList.remove("hidden");
+
+            document.body.classList.add("shake");
+
+            setTimeout(function() {
+
+                document.body.classList.remove("shake");
+
+            }, 1000);
+
+        });
+
+
+    /*
+     * =========================
+     * 「いいえ」
+     * =========================
+     */
+
+    document
+        .getElementById("noButton")
+        .addEventListener("click", function() {
+
+            hideAllScreens();
+
+            warningScreen.classList.remove("hidden");
+
+        });
+
+
+    /*
+     * =========================
+     * SYSTEM ERROR → virus.apk
+     * =========================
+     */
+
+    document
+        .getElementById("virusButton")
+        .addEventListener("click", function() {
+
+            hideAllScreens();
+
+            virusScreen.classList.remove("hidden");
+
+        });
+
+
+    /*
+     * =========================
+     * ダウンロードしない
+     * =========================
+     */
+
+    document
+        .getElementById("downloadNo")
+        .addEventListener("click", function() {
+
+            hideAllScreens();
+
+            fakeDownload1.classList.remove("hidden");
+
+
+            // 4秒後に「嘘だよ」
+            setTimeout(function() {
+
+                alert("嘘だよ");
+
+            }, 4000);
+
+        });
+
+
+    /*
+     * =========================
+     * ダウンロードする
+     * =========================
+     */
+
+    document
+        .getElementById("downloadYes")
+        .addEventListener("click", function() {
+
+            hideAllScreens();
+
+            fakeDownload2.classList.remove("hidden");
+
+
+            // 3秒後にネタばらし
+            setTimeout(function() {
+
+                alert("嘘だよ、まあ一部は😏");
+
+            }, 3000);
+
+        });
 
 </script>
 
