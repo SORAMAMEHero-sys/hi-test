@@ -1,105 +1,298 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>爆走ランアクション！調整版</title>
-    <style>
-        body { margin: 0; background: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; }
-        canvas { background: #282c34; border: 4px solid #61dafb; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>WARNING</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: #000;
+        color: #fff;
+        font-family: monospace;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    #warning {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #050505;
+    }
+
+    h1 {
+        color: red;
+        font-size: 42px;
+        animation: blink 0.7s infinite;
+    }
+
+    .danger {
+        color: #ff3333;
+        font-size: 20px;
+        margin: 15px;
+    }
+
+    button {
+        padding: 15px 30px;
+        font-size: 18px;
+        margin-top: 20px;
+        cursor: pointer;
+        background: #111;
+        color: red;
+        border: 2px solid red;
+    }
+
+    button:hover {
+        background: red;
+        color: white;
+    }
+
+    #screen {
+        display: none;
+        min-height: 100vh;
+        padding: 30px 15px;
+        background: #000;
+    }
+
+    #message {
+        margin-top: 50px;
+        font-size: 20px;
+        line-height: 2;
+        white-space: pre-line;
+    }
+
+    #progress {
+        width: 80%;
+        max-width: 500px;
+        height: 25px;
+        border: 2px solid red;
+        margin: 30px auto;
+    }
+
+    #bar {
+        width: 0%;
+        height: 100%;
+        background: red;
+    }
+
+    #download {
+        display: none;
+        margin-top: 40px;
+    }
+
+    #download button {
+        font-size: 20px;
+    }
+
+    #end {
+        display: none;
+        color: #00ff66;
+        margin-top: 40px;
+    }
+
+    @keyframes blink {
+        50% {
+            opacity: 0.2;
+        }
+    }
+</style>
 </head>
+
 <body>
-<canvas id="gameCanvas" width="800" height="300"></canvas>
+
+<div id="warning">
+
+    <h1>⚠️ WARNING ⚠️</h1>
+
+    <div class="danger">
+        このサイトには刺激の強い演出があります。
+    </div>
+
+    <div>
+        実際のウイルス感染やファイル削除は発生しません。
+    </div>
+
+    <button id="start">覚悟して進む</button>
+
+</div>
+
+
+<div id="screen">
+
+    <h1>⚠️ SYSTEM WARNING ⚠️</h1>
+
+    <div id="message"></div>
+
+    <div id="progress">
+        <div id="bar"></div>
+    </div>
+
+    <div id="download">
+
+        <p>
+            怪しいファイルが検出されました。
+        </p>
+
+        <p>
+            <strong>ファイルをダウンロードしますか？</strong>
+        </p>
+
+        <button id="downloadButton">
+            ダウンロード
+        </button>
+
+    </div>
+
+    <div id="end">
+        <h2>😏 ダウンロードできませんでした</h2>
+
+        <p>
+            ……お疲れさまでした。
+        </p>
+
+        <p>
+            これは度胸試しでした。
+        </p>
+    </div>
+
+</div>
+
+
 <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
 
-    let player = { x: 50, y: 210, size: 20, dy: 0, gravity: 0.8, grounded: true };
-    let obstacles = [];
-    let gameSpeed = 6;
-    let score = 0;
-    let isGameOver = false;
-    let isPressing = false;
-    let speedInterval;
+const warning = document.getElementById("warning");
+const screen = document.getElementById("screen");
+const start = document.getElementById("start");
 
-    // 5秒ごとに1.1倍早くする
-    function startSpeedUp() {
-        speedInterval = setInterval(() => {
-            if (!isGameOver) {
-                gameSpeed *= 1.1;
-            }
-        }, 5000);
-    }
+const message = document.getElementById("message");
+const bar = document.getElementById("bar");
 
-    window.addEventListener("pointerdown", () => {
-        if (isGameOver) {
-            obstacles = []; score = 0; gameSpeed = 6; isGameOver = false; player.y = 210;
-            clearInterval(speedInterval);
-            startSpeedUp();
-            loop();
-        } else if (player.grounded) {
-            player.dy = -10;
-            player.grounded = false;
-            isPressing = true;
+const download = document.getElementById("download");
+const downloadButton = document.getElementById("downloadButton");
+
+const end = document.getElementById("end");
+
+
+start.addEventListener("click", function() {
+
+    warning.style.display = "none";
+    screen.style.display = "block";
+
+    startSequence();
+
+});
+
+
+function startSequence() {
+
+    message.textContent =
+        "システムを確認しています……";
+
+    setTimeout(function() {
+
+        message.textContent =
+            "⚠️ 警告\n\n" +
+            "ストレージに異常が検出されました。";
+
+    }, 2000);
+
+
+    setTimeout(function() {
+
+        message.textContent =
+            "HDDを確認しています……";
+
+        startProgress();
+
+    }, 4000);
+
+
+    setTimeout(function() {
+
+        message.textContent =
+            "⚠️ ERROR ⚠️\n\n" +
+            "重要なデータが破損している可能性があります。";
+
+    }, 8000);
+
+
+    setTimeout(function() {
+
+        message.textContent =
+            "不明なプログラムを検出しました……";
+
+    }, 11000);
+
+
+    setTimeout(function() {
+
+        message.textContent =
+            "ウイルススキャンを実行しています……";
+
+    }, 14000);
+
+
+    setTimeout(function() {
+
+        message.textContent =
+            "⚠️ 危険なファイルを検出しました。";
+
+        download.style.display = "block";
+
+    }, 18000);
+
+}
+
+
+function startProgress() {
+
+    let progress = 0;
+
+    const timer = setInterval(function() {
+
+        progress++;
+
+        bar.style.width = progress + "%";
+
+        if (progress >= 100) {
+
+            clearInterval(timer);
+
         }
-    });
 
-    window.addEventListener("pointerup", () => { isPressing = false; });
+    }, 50);
 
-    function update() {
-        if (isGameOver) return;
-        if (!isPressing && player.dy < -2) player.dy += 0.5;
-        player.dy += player.gravity;
-        player.y += player.dy;
+}
 
-        if (player.y > 210) { player.y = 210; player.dy = 0; player.grounded = true; }
-        
-        // 発生確率を下げて（0.02 → 0.012）、サボテンの間隔を開ける
-        if (Math.random() < 0.012) {
-            obstacles.push({ x: canvas.width, y: 225 });
-        }
 
-        for (let i = obstacles.length - 1; i >= 0; i--) {
-            obstacles[i].x -= gameSpeed;
-            
-            // 当たり判定
-            if (obstacles[i].x < player.x + player.size && obstacles[i].x > player.x - 15 && player.y > 195) {
-                isGameOver = true;
-                clearInterval(speedInterval);
-            }
-            if (obstacles[i].x < -30) { obstacles.splice(i, 1); score++; }
-        }
-    }
+downloadButton.addEventListener("click", function() {
 
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // プレイヤー(20x20の真四角)
-        ctx.fillStyle = "#61dafb";
-        ctx.fillRect(player.x, player.y, player.size, player.size);
-        
-        // 障害物はサボテン(🌵)
-        ctx.font = "30px Arial";
-        for (let obs of obstacles) {
-            ctx.fillText("🌵", obs.x, obs.y);
-        }
+    download.style.display = "none";
 
-        ctx.fillStyle = "white";
-        ctx.font = "20px Arial";
-        ctx.fillText("Score: " + score + " | Speed: " + gameSpeed.toFixed(1), 20, 30);
-        
-        if (isGameOver) {
-            ctx.fillText("GAME OVER", 330, 150);
-        }
-    }
+    message.textContent =
+        "ファイルをダウンロードしています……";
 
-    function loop() {
-        update(); draw();
-        if (!isGameOver) requestAnimationFrame(loop);
-    }
+    setTimeout(function() {
 
-    startSpeedUp();
-    loop();
+        message.textContent =
+            "❌ ダウンロードに失敗しました。";
+
+        end.style.display = "block";
+
+    }, 2500);
+
+});
+
 </script>
+
 </body>
 </html>
